@@ -247,8 +247,8 @@
     .export-btn-large:active { transform: scale(0.97); }
 
     /* VOICE FLOAT BUTTON */
-    .voice-float-btn { position: fixed; bottom: 130px; right: 16px; width: 72px; height: 72px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 50%; color: #fff; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(102,126,234,0.55); transition: all 0.2s; z-index: 61; }
-    .voice-float-btn:active, .voice-float-btn.listening { transform: scale(0.92); background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 24px rgba(231,76,60,0.55); }
+    .voice-float-btn { position: fixed; bottom: 130px; left: 50%; transform: translateX(-50%); width: 72px; height: 72px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 50%; color: #fff; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(102,126,234,0.55); transition: all 0.2s; z-index: 61; }
+    .voice-float-btn:active, .voice-float-btn.listening { transform: translateX(-50%) scale(0.92); background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 24px rgba(231,76,60,0.55); }
     .voice-float-btn.listening { animation: voicePulse 1.2s infinite; }
     @keyframes voicePulse { 0%,100%{box-shadow: 0 4px 24px rgba(231,76,60,0.55);} 50%{box-shadow: 0 4px 40px rgba(231,76,60,0.9);} }
 
@@ -1046,23 +1046,127 @@
       currentTheme = theme;
       localStorage.setItem('appTheme', theme);
       const themes = {
-        default: { bar:'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', accent:'#667eea', bg:'#f0f4ff', text:'#1a1a2e', tab:'#667eea' },
-        light: { bar:'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', accent:'#495057', bg:'#ffffff', text:'#212529', tab:'#495057' },
-        green: { bar:'linear-gradient(135deg, #2d6a4f 0%, #52b788 100%)', accent:'#2d6a4f', bg:'#f0fff4', text:'#1a1a2e', tab:'#2d6a4f' },
-        dark: { bar:'linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%)', accent:'#667eea', bg:'#1a1a2e', text:'#f0f0f0', tab:'#a78bfa' }
+        default: {
+          bar: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          accent: '#667eea',
+          bg: '#f0f4ff',
+          card: '#ffffff',
+          text: '#1a1a2e',
+          text2: '#6b7280',
+          tab: '#667eea',
+          tab2: '#9ca3af',
+          border: '#e5e7eb',
+          inputBg: '#f8f9fc',
+          inputBorder: '#e5e7eb',
+          catSection: '#ffffff',
+          catText: '#6b7280',
+          exportBtn: 'linear-gradient(135deg, #667eea, #764ba2)',
+          exportText: '#ffffff',
+          funStatBg: '#f8f9fc',
+          funStatText: '#1a1a2e',
+          voiceBtn: 'linear-gradient(135deg, #667eea, #764ba2)',
+        },
+        light: {
+          bar: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+          accent: '#495057',
+          bg: '#ffffff',
+          card: '#ffffff',
+          text: '#212529',
+          text2: '#6c757d',
+          tab: '#495057',
+          tab2: '#9ca3af',
+          border: '#dee2e6',
+          inputBg: '#ffffff',
+          inputBorder: '#ced4da',
+          catSection: '#f8f9fa',
+          catText: '#6c757d',
+          exportBtn: 'linear-gradient(135deg, #667eea, #764ba2)',
+          exportText: '#ffffff',
+          funStatBg: '#f8f9fa',
+          funStatText: '#212529',
+          voiceBtn: 'linear-gradient(135deg, #667eea, #764ba2)',
+        },
+        green: {
+          bar: 'linear-gradient(135deg, #2d6a4f 0%, #52b788 100%)',
+          accent: '#2d6a4f',
+          bg: '#f0fff4',
+          card: '#ffffff',
+          text: '#1a1a2e',
+          text2: '#6b7280',
+          tab: '#2d6a4f',
+          tab2: '#9ca3af',
+          border: '#b7e4c7',
+          inputBg: '#f0fff4',
+          inputBorder: '#b7e4c7',
+          catSection: '#ffffff',
+          catText: '#6b7280',
+          exportBtn: 'linear-gradient(135deg, #2d6a4f, #52b788)',
+          exportText: '#ffffff',
+          funStatBg: '#f0fff4',
+          funStatText: '#1a1a2e',
+          voiceBtn: 'linear-gradient(135deg, #2d6a4f, #52b788)',
+        },
+        dark: {
+          bar: 'linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%)',
+          accent: '#a78bfa',
+          bg: '#1a1a2e',
+          card: '#2d2d44',
+          text: '#f0f0f0',
+          text2: '#9ca3af',
+          tab: '#a78bfa',
+          tab2: '#6b7280',
+          border: '#374151',
+          inputBg: '#374151',
+          inputBorder: '#4b5563',
+          catSection: '#2d2d44',
+          catText: '#9ca3af',
+          exportBtn: 'linear-gradient(135deg, #667eea, #764ba2)',
+          exportText: '#ffffff',
+          funStatBg: '#374151',
+          funStatText: '#f0f0f0',
+          voiceBtn: 'linear-gradient(135deg, #667eea, #764ba2)',
+        }
       };
       const t = themes[theme] || themes.default;
+
+      // Top bar
       document.querySelector('.top-bar').style.background = t.bar;
+      // Body and app
       document.body.style.background = t.bg;
       document.querySelector('.app').style.background = t.bg;
-      // Update tab text colors
+
+      // Tabs
       document.querySelectorAll('.tab').forEach(tab => {
-        if (tab.classList.contains('active')) {
-          tab.style.color = t.tab;
-        } else {
-          tab.style.color = theme === 'dark' ? '#9ca3af' : '#9ca3af';
-        }
+        tab.style.color = tab.classList.contains('active') ? t.tab : t.tab2;
       });
+
+      // Settings cards
+      document.querySelectorAll('.settings-card').forEach(el => {
+        el.style.background = t.card;
+        el.style.borderColor = t.border;
+      });
+      document.querySelectorAll('.settings-title').forEach(el => el.style.color = t.text);
+
+      // Export button
+      document.querySelectorAll('.export-btn-large').forEach(el => {
+        el.style.background = t.exportBtn;
+        el.style.color = t.exportText;
+      });
+
+      // Fun stat cards
+      document.querySelectorAll('.fun-stat-card').forEach(el => {
+        el.style.background = t.funStatBg;
+      });
+      document.querySelectorAll('.fun-stat-val').forEach(el => el.style.color = t.funStatText);
+      document.querySelectorAll('.fun-stat-label').forEach(el => el.style.color = t.text2);
+
+      // Voice button
+      document.getElementById('voiceFloatBtn').style.background = t.voiceBtn;
+
+      // Category section
+      document.getElementById('catSection').style.background = t.catSection;
+      document.querySelector('.cat-section-title').style.color = t.catText;
+
       // Theme items selected state
       document.querySelectorAll('.theme-item').forEach(el => {
         el.classList.remove('selected');
@@ -1073,13 +1177,36 @@
         sel.classList.add('selected');
         sel.style.borderColor = theme === 'light' ? '#adb5bd' : theme === 'dark' ? '#667eea' : '#1a1a2e';
       }
-      // Fun stats and other text
-      document.querySelectorAll('.fun-stat-val, .settings-title, .settings-card').forEach(el => {
-        el.style.color = t.text;
+
+      // Inline form (if open)
+      document.querySelectorAll('.inline-form').forEach(el => {
+        el.style.background = t.card;
       });
-      document.querySelectorAll('.fun-stat-card, .export-btn-large').forEach(el => {
-        el.style.background = theme === 'dark' ? '#2d2d44' : '#f8f9fc';
+      document.querySelectorAll('.inline-form-title').forEach(el => el.style.color = t.text);
+
+      // Period buttons on stats page
+      document.querySelectorAll('.period-btn').forEach(el => {
+        el.style.color = t.text2;
+        el.style.borderColor = t.border;
       });
+
+      // Budget cards
+      document.querySelectorAll('.budget-card').forEach(el => {
+        el.style.background = t.card;
+        el.style.borderColor = t.border;
+      });
+      document.querySelectorAll('.budget-name, .budget-val').forEach(el => el.style.color = t.text);
+      document.querySelectorAll('.budget-label').forEach(el => el.style.color = t.text2);
+
+      // Search input
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.style.background = t.inputBg;
+        searchInput.style.borderColor = t.inputBorder;
+        searchInput.style.color = t.text;
+      }
+      document.getElementById('filterBtn').style.color = t.text2;
+      document.getElementById('filterBtn').style.borderColor = t.border;
     }
     document.querySelectorAll('.theme-item').forEach(el => {
       el.addEventListener('click', () => applyTheme(el.dataset.theme));
