@@ -125,11 +125,14 @@
     .inline-submit:active { transform: scale(0.97); }
 
     /* CATEGORY CHIPS */
-    .cat-section { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #fff; border-radius: 24px 24px 0 0; padding: 16px 16px 36px; box-shadow: 0 -4px 30px rgba(0,0,0,0.1); z-index: 50; }
-    .cat-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .cat-section-title { font-size: 13px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
-    .cat-section-hint { font-size: 12px; color: #667eea; font-weight: 600; }
-    .cat-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .cat-section { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #fff; border-radius: 24px 24px 0 0; padding: 14px 16px 36px; box-shadow: 0 -4px 30px rgba(0,0,0,0.1); z-index: 50; }
+    .cat-section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .cat-section-title { font-size: 13px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+    .cat-type-toggle { display: flex; background: #f0f2f8; border-radius: 20px; padding: 3px; flex-shrink: 0; }
+    .cat-type-btn { padding: 5px 14px; border-radius: 18px; font-size: 13px; font-weight: 700; cursor: pointer; color: #9ca3af; transition: all 0.2s; border: none; background: none; }
+    .cat-type-btn.active.expense { background: #e74c3c; color: #fff; }
+    .cat-type-btn.active.income { background: #2ecc71; color: #fff; }
+    .cat-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
     .cat-chip { display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
     .cat-chip:active { transform: scale(0.94); }
     .cat-chip.income-cat { background: linear-gradient(135deg, #2ecc71, #27ae60); }
@@ -244,8 +247,8 @@
     .export-btn-large:active { transform: scale(0.97); }
 
     /* VOICE FLOAT BUTTON */
-    .voice-float-btn { position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%); width: 72px; height: 72px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 50%; color: #fff; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(102,126,234,0.55); transition: all 0.2s; z-index: 60; }
-    .voice-float-btn:active, .voice-float-btn.listening { transform: translateX(-50%) scale(0.92); background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 24px rgba(231,76,60,0.55); }
+    .voice-float-btn { position: fixed; bottom: 130px; right: 16px; width: 72px; height: 72px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 50%; color: #fff; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(102,126,234,0.55); transition: all 0.2s; z-index: 61; }
+    .voice-float-btn:active, .voice-float-btn.listening { transform: scale(0.92); background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 24px rgba(231,76,60,0.55); }
     .voice-float-btn.listening { animation: voicePulse 1.2s infinite; }
     @keyframes voicePulse { 0%,100%{box-shadow: 0 4px 24px rgba(231,76,60,0.55);} 50%{box-shadow: 0 4px 40px rgba(231,76,60,0.9);} }
 
@@ -437,7 +440,10 @@
     <div class="cat-section" id="catSection">
       <div class="cat-section-header">
         <span class="cat-section-title">记一笔</span>
-        <span class="cat-section-hint" id="catSectionHint">选择一个分类</span>
+        <div class="cat-type-toggle">
+          <button class="cat-type-btn expense active" id="catTypeExpense">支出</button>
+          <button class="cat-type-btn income" id="catTypeIncome">收入</button>
+        </div>
       </div>
       <div class="cat-chips" id="catChips"></div>
     </div>
@@ -505,8 +511,9 @@
 
     const CAT_COLORS = {'餐饮':'#ff6b6b','工作':'#ffd93d','AI':'#6bcb77','交通':'#4d96ff','住房':'#c77dff','购物':'#ff9f43','医疗':'#00d2d3','通讯':'#a29bfe','其他':'#b2bec3'};
     const DEFAULT_EXPENSE_CATS = ['餐饮','工作','AI','交通','住房','购物','医疗','通讯','其他'];
-    const INCOME_CATS = ['工资','奖金','投资收益','红包','其他收入'];
+    const INCOME_CATS = ['工资','提成','红包','其他'];
     const customCats = JSON.parse(localStorage.getItem('customCats') || '[]');
+    let activeCatType = 'expense';
 
     function saveRecords() { localStorage.setItem('records', JSON.stringify(records)); }
     function saveAccounts() { localStorage.setItem('accounts', JSON.stringify(accounts)); }
@@ -536,11 +543,11 @@
 
     function renderCatChips() {
       const expenseCats = getAllExpenseCats();
-      const html = `<div class="cat-chip income-cat" data-type="income">💰 收入</div>` +
-        expenseCats.map(c => {
-          const color = getCatColor(c);
-          return `<div class="cat-chip expense-cat" data-cat="${c}" data-type="expense" style="background:${color};">${c}</div>`;
-        }).join('');
+      const cats = activeCatType === 'expense' ? expenseCats : INCOME_CATS;
+      const html = cats.map(c => {
+        const color = activeCatType === 'expense' ? getCatColor(c) : '#2ecc71';
+        return `<div class="cat-chip expense-cat" data-cat="${c}" data-type="${activeCatType}" style="background:${color};">${c}</div>`;
+      }).join('');
       document.getElementById('catChips').innerHTML = html;
       document.querySelectorAll('.cat-chip').forEach(chip => {
         chip.addEventListener('click', () => {
@@ -548,7 +555,6 @@
           chip.classList.add('selected');
           activeInlineType = chip.dataset.type;
           activeInlineCat = chip.dataset.cat || '';
-          document.getElementById('catSectionHint').textContent = activeInlineCat || '收入';
           showInlineForm(activeInlineType, activeInlineCat);
         });
       });
@@ -556,8 +562,9 @@
 
     function showInlineForm(type, cat, record) {
       const area = document.getElementById('inlineFormArea');
-      const color = cat ? getCatColor(cat) : '#2ecc71';
-      const catBadge = cat ? `<span class="inline-form-cat-badge" style="background:${color};">${cat}</span>` : `<span class="inline-form-cat-badge" style="background:#2ecc71;">收入</span>`;
+      const effectiveType = record ? type : activeCatType;
+      const color = cat ? getCatColor(cat) : (effectiveType === 'income' ? '#2ecc71' : '#e74c3c');
+      const catBadge = cat ? `<span class="inline-form-cat-badge" style="background:${color};">${cat}</span>` : `<span class="inline-form-cat-badge" style="background:${color};">${effectiveType === 'income' ? '收入' : '支出'}</span>`;
       const isEdit = record != null;
       const now = new Date();
       const defaultDate = record ? record.date : `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
@@ -570,13 +577,9 @@
             </div>
             <button class="inline-close" id="inlineClose">×</button>
           </div>
-          <div class="type-row">
-            <div class="type-btn-sm expense ${type==='expense'?'active':''}" data-t="expense">支出</div>
-            <div class="type-btn-sm income ${type==='income'?'active':''}" data-t="income">收入</div>
-          </div>
           <div class="inline-form-row">
             <label>金额</label>
-            <input type="number" id="inlineAmount" placeholder="0.00" step="0.01" min="0" inputmode="decimal" value="${isEdit ? record.amount : ''}" style="color:${type==='expense'?'#e74c3c':'#2ecc71'};">
+            <input type="number" id="inlineAmount" placeholder="0.00" step="0.01" min="0" inputmode="decimal" value="${isEdit ? record.amount : ''}" style="color:${effectiveType === 'income' ? '#2ecc71' : '#e74c3c'};">
           </div>
           <div class="inline-date-row">
             <button class="inline-date-btn" id="showDateBtn">选择日期</button>
@@ -639,14 +642,6 @@
       // Scroll form into view on mobile
       setTimeout(() => { document.getElementById('inlineFormArea').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
       document.getElementById('inlineClose').onclick = closeInlineForm;
-      document.querySelectorAll('.type-btn-sm').forEach(btn => {
-        btn.onclick = () => {
-          document.querySelectorAll('.type-btn-sm').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          activeInlineType = btn.dataset.t;
-          document.getElementById('inlineAmount').style.color = activeInlineType === 'expense' ? '#e74c3c' : '#2ecc71';
-        };
-      });
       document.getElementById('inlineSubmit').onclick = () => {
         const amount = parseFloat(document.getElementById('inlineAmount').value);
         if (!amount || amount <= 0) { alert('请输入有效金额'); return; }
@@ -683,7 +678,6 @@
     function closeInlineForm() {
       document.getElementById('inlineFormArea').innerHTML = '';
       document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('selected'));
-      document.getElementById('catSectionHint').textContent = '选择一个分类';
       activeInlineCat = '';
       editIndex = -1;
     }
@@ -1141,6 +1135,22 @@
 
     document.getElementById('saveMonthBudget').onclick = () => { monthBudget = parseFloat(document.getElementById('monthBudgetInput').value) || 0; localStorage.setItem('monthBudget', monthBudget); updateBalance(); };
     document.getElementById('saveYearBudget').onclick = () => { yearBudget = parseFloat(document.getElementById('yearBudgetInput').value) || 0; localStorage.setItem('yearBudget', yearBudget); updateBalance(); };
+
+    // Category type toggle
+    document.getElementById('catTypeExpense').onclick = () => {
+      activeCatType = 'expense';
+      document.getElementById('catTypeExpense').classList.add('active');
+      document.getElementById('catTypeIncome').classList.remove('active');
+      closeInlineForm();
+      renderCatChips();
+    };
+    document.getElementById('catTypeIncome').onclick = () => {
+      activeCatType = 'income';
+      document.getElementById('catTypeIncome').classList.add('active');
+      document.getElementById('catTypeExpense').classList.remove('active');
+      closeInlineForm();
+      renderCatChips();
+    };
 
     // Show voice btn on record page (default active tab)
     document.getElementById('voiceFloatBtn').style.display = 'flex';
