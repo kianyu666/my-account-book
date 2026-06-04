@@ -256,6 +256,7 @@
     .voice-hint { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 16px 28px; border-radius: 16px; font-size: 16px; font-weight: 700; z-index: 300; display: none; text-align: center; }
     .voice-hint.show { display: block; animation: fadeInOut 2.5s forwards; }
     @keyframes fadeInOut { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.9);} 15%{opacity:1;transform:translate(-50%,-50%) scale(1);} 75%{opacity:1;transform:translate(-50%,-50%) scale(1);} 100%{opacity:0;transform:translate(-50%,-50%) scale(0.9);} }
+    @keyframes shake { 0%,100%{transform:translateX(-50%);} 20%{transform:translateX(-50%) rotate(-8deg);} 40%{transform:translateX(-50%) rotate(8deg);} 60%{transform:translateX(-50%) rotate(-6deg);} 80%{transform:translateX(-50%) rotate(6deg);} }
   </style>
 </head>
 <body>
@@ -929,7 +930,9 @@
     document.getElementById('voiceFloatBtn').onclick = () => {
       const btn = document.getElementById('voiceFloatBtn');
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert('当前浏览器不支持语音输入，请使用 Chrome 或 Edge');
+        btn.style.animation = 'shake 0.4s';
+        setTimeout(() => btn.style.animation = '', 400);
+        alert('当前浏览器不支持语音输入，请使用 Chrome 或 Edge 浏览器');
         return;
       }
       if (isListening) {
@@ -943,24 +946,26 @@
       recognition.interimResults = false;
       isListening = true;
       btn.classList.add('listening');
+      btn.style.animation = 'voicePulse 1.2s infinite';
       recognition.start();
-      // Show hint
-      const hint = document.getElementById('voiceHint');
-      hint.classList.remove('show');
-      void hint.offsetWidth; // reflow
-      hint.classList.add('show');
       recognition.onresult = e => {
         const text = e.results[0][0].transcript;
         btn.classList.remove('listening');
+        btn.style.animation = '';
         isListening = false;
         parseVoiceAndFill(text);
       };
-      recognition.onerror = () => {
+      recognition.onerror = e => {
         btn.classList.remove('listening');
+        btn.style.animation = '';
         isListening = false;
+        if (e.error !== 'no-speech') {
+          alert('语音识别出错，请确保已授予麦克风权限（浏览器设置中开启）');
+        }
       };
       recognition.onend = () => {
         btn.classList.remove('listening');
+        btn.style.animation = '';
         isListening = false;
       };
     };
