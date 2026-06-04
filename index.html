@@ -61,6 +61,22 @@
     .inline-form-row input { flex: 1; padding: 10px 12px; border: 2px solid #eee; border-radius: 10px; font-size: 15px; outline: none; transition: border-color 0.15s; background: #fafbff; }
     .inline-form-row input:focus { border-color: #667eea; background: #fff; }
     .inline-form-row input[type="number"] { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+    .inline-date-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .inline-date-btn { padding: 9px 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(102,126,234,0.3); }
+    .inline-date-display { flex: 1; padding: 10px 12px; border: 2px solid #667eea; border-radius: 10px; font-size: 15px; font-weight: 700; color: #667eea; background: #f5f7ff; text-align: center; }
+    .inline-calendar { display: none; background: #fff; border: 2px solid #eee; border-radius: 16px; padding: 14px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .inline-calendar.show { display: block; }
+    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .cal-nav { background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px 10px; color: #667eea; font-weight: 700; }
+    .cal-month { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+    .cal-dow { font-size: 11px; font-weight: 700; color: #c4c9d4; margin-bottom: 4px; }
+    .cal-day { padding: 7px 2px; font-size: 14px; font-weight: 600; border-radius: 50%; cursor: pointer; color: #555; transition: all 0.15s; }
+    .cal-day:hover { background: #f0f4ff; }
+    .cal-day.today { border: 2px solid #667eea; color: #667eea; }
+    .cal-day.selected { background: #667eea; color: #fff; }
+    .cal-day.disabled { color: #d4d9e4; cursor: default; }
+    .cal-day.other-month { color: #c4c9d4; }
     .inline-submit { width: 100%; padding: 13px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(102,126,234,0.35); transition: all 0.15s; }
     .inline-submit:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(102,126,234,0.25); }
 
@@ -313,8 +329,8 @@
       const color = cat ? getCatColor(cat) : '#2ecc71';
       const catBadge = cat ? `<span class="inline-form-cat-badge" style="background:${color};">${cat}</span>` : `<span class="inline-form-cat-badge" style="background:#2ecc71;">收入</span>`;
       const isEdit = record != null;
-      const today = new Date().toISOString().split('T')[0];
-      const defaultDate = record ? record.date.split('/').reverse().join('-') : today;
+      const now = new Date();
+      const defaultDate = record ? record.date : `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
       area.innerHTML = `
         <div class="inline-form">
           <div class="inline-form-header">
@@ -332,10 +348,12 @@
             <label>金额</label>
             <input type="number" id="inlineAmount" placeholder="0.00" step="0.01" min="0" inputmode="decimal" value="${isEdit ? record.amount : ''}" style="color:${type==='expense'?'#e74c3c':'#2ecc71'};">
           </div>
-          <div class="inline-form-row">
+          <div class="inline-form-row" style="margin-bottom:8px;">
             <label>日期</label>
-            <input type="date" id="inlineDate" value="${defaultDate}" style="color:#1a1a2e;">
+            <button class="inline-date-btn" id="showDateBtn">选择日期</button>
+            <div class="inline-date-display" id="dateDisplay">${defaultDate}</div>
           </div>
+          <div class="inline-calendar" id="inlineCalendar"></div>
           <div class="inline-form-row">
             <label>备注</label>
             <input type="text" id="inlineNote" placeholder="选填" value="${isEdit ? record.note : ''}">
@@ -344,6 +362,68 @@
           <button class="inline-submit" id="inlineSubmit">${isEdit ? '更新' : '保存'}</button>
         </div>
       `;
+
+      let calYear = now.getFullYear();
+      let calMonth = now.getMonth();
+      let selectedDate = defaultDate;
+
+      function renderCal() {
+        const firstDay = new Date(calYear, calMonth, 1).getDay();
+        const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        const today = new Date();
+        const calEl = document.getElementById('inlineCalendar');
+        const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+        const dowNames = ['日','一','二','三','四','五','六'];
+        let html = `<div class="cal-header">
+          <button class="cal-nav" id="calPrev">‹</button>
+          <span class="cal-month">${calYear}年 ${monthNames[calMonth]}</span>
+          <button class="cal-nav" id="calNext">›</button>
+        </div>
+        <div class="cal-grid">`;
+        html += dowNames.map(d => `<div class="cal-dow">${d}</div>`).join('');
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+        const selParts = selectedDate.split('/');
+        const selStr = `${selParts[2]}-${String(selParts[1]).padStart(2,'0')}-${String(selParts[0]).padStart(2,'0')}`;
+        for (let i = 0; i < firstDay; i++) html += `<div class="cal-day other-month disabled"></div>`;
+        for (let d = 1; d <= daysInMonth; d++) {
+          const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+          const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          const isSel = d === parseInt(selParts[0]) && calMonth === parseInt(selParts[1])-1 && calYear === parseInt(selParts[2]);
+          html += `<div class="cal-day${isToday?' today':''}${isSel?' selected':''}" data-d="${d}">${d}</div>`;
+        }
+        html += '</div>';
+        calEl.innerHTML = html;
+        calEl.querySelectorAll('.cal-day:not(.disabled)').forEach(dayEl => {
+          dayEl.addEventListener('click', () => {
+            const dd = dayEl.dataset.d;
+            selectedDate = `${dd}/${calMonth+1}/${calYear}`;
+            document.getElementById('dateDisplay').textContent = selectedDate;
+            document.getElementById('inlineCalendar').classList.remove('show');
+            renderCal();
+          });
+        });
+        document.getElementById('calPrev').addEventListener('click', () => {
+          calMonth--;
+          if (calMonth < 0) { calMonth = 11; calYear--; }
+          renderCal();
+        });
+        document.getElementById('calNext').addEventListener('click', () => {
+          calMonth++;
+          if (calMonth > 11) { calMonth = 0; calYear++; }
+          renderCal();
+        });
+      }
+
+      document.getElementById('showDateBtn').addEventListener('click', () => {
+        const cal = document.getElementById('inlineCalendar');
+        if (cal.classList.contains('show')) {
+          cal.classList.remove('show');
+        } else {
+          renderCal();
+          cal.classList.add('show');
+        }
+      });
+
       document.getElementById('inlineAmount').focus();
       document.getElementById('inlineClose').addEventListener('click', closeInlineForm);
       document.querySelectorAll('.type-btn-sm').forEach(btn => {
@@ -360,15 +440,12 @@
         const amount = parseFloat(document.getElementById('inlineAmount').value);
         if (!amount || amount <= 0) { alert('请输入有效金额'); return; }
         const note = document.getElementById('inlineNote').value;
-        const dateStr = document.getElementById('inlineDate').value;
-        const dateParts = dateStr.split('-');
-        const date = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
         const cat = activeInlineCat || (activeInlineType === 'income' ? '工资' : '其他');
         if (editIndex >= 0) {
-          records[editIndex] = { type: activeInlineType, amount, category: cat, note, date };
+          records[editIndex] = { type: activeInlineType, amount, category: cat, note, date: selectedDate };
           editIndex = -1;
         } else {
-          records.unshift({ type: activeInlineType, amount, category: cat, note, date });
+          records.unshift({ type: activeInlineType, amount, category: cat, note, date: selectedDate });
         }
         localStorage.setItem('records', JSON.stringify(records));
         closeInlineForm();
