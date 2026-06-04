@@ -29,6 +29,7 @@
     .tabs { display: flex; background: #fff; border-radius: 20px 20px 0 0; margin-top: -12px; position: relative; z-index: 10; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); }
     .tab { flex: 1; padding: 15px 8px; text-align: center; font-size: 14px; font-weight: 600; color: #9ca3af; cursor: pointer; transition: all 0.2s; border-bottom: 3px solid transparent; }
     .tab.active { color: #667eea; border-bottom-color: #667eea; }
+    .tab[data-tab="settings"] { font-size: 13px; }
 
     /* SEARCH BAR */
     .search-bar { padding: 12px 16px 0; display: flex; gap: 8px; align-items: center; }
@@ -217,6 +218,41 @@
     .cal-day.selected { background: #667eea; color: #fff; }
     .cal-day.disabled { color: #d4d9e4; cursor: default; }
     .cal-day.other-month { color: #c4c9d4; }
+
+    /* SETTINGS PAGE */
+    .settings-card { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 14px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); border: 1px solid #f0f0f8; }
+    .settings-title { font-size: 14px; font-weight: 800; color: #1a1a2e; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .theme-item { border-radius: 14px; padding: 14px 12px; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; text-align: center; }
+    .theme-item:active { transform: scale(0.96); }
+    .theme-item.selected { border-color: #1a1a2e; }
+    .theme-item-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .theme-item-desc { font-size: 11px; color: rgba(255,255,255,0.75); }
+    .theme-default { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .theme-light { background: linear-gradient(135deg, #f8f9fa, #e9ecef); }
+    .theme-light .theme-item-name { color: #495057; }
+    .theme-light .theme-item-desc { color: #868e96; }
+    .theme-green { background: linear-gradient(135deg, #2d6a4f, #52b788); }
+    .theme-dark { background: linear-gradient(135deg, #1a1a2e, #2d2d44); }
+
+    .fun-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .fun-stat-card { background: #f8f9fc; border-radius: 14px; padding: 14px; text-align: center; }
+    .fun-stat-emoji { font-size: 24px; margin-bottom: 4px; }
+    .fun-stat-val { font-size: 18px; font-weight: 800; color: #1a1a2e; }
+    .fun-stat-label { font-size: 11px; color: #9ca3af; font-weight: 600; margin-top: 2px; }
+    .export-btn-large { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(102,126,234,0.35); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .export-btn-large:active { transform: scale(0.97); }
+
+    /* VOICE FLOAT BUTTON */
+    .voice-float-btn { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 50%; color: #fff; font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(102,126,234,0.5); transition: all 0.2s; z-index: 60; }
+    .voice-float-btn:active, .voice-float-btn.listening { transform: translateX(-50%) scale(0.92); background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 20px rgba(231,76,60,0.5); }
+    .voice-float-btn.listening { animation: voicePulse 1.2s infinite; }
+    @keyframes voicePulse { 0%,100%{box-shadow: 0 4px 20px rgba(231,76,60,0.5);} 50%{box-shadow: 0 4px 35px rgba(231,76,60,0.8);} }
+
+    /* VOICE HINT */
+    .voice-hint { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 16px 28px; border-radius: 16px; font-size: 16px; font-weight: 700; z-index: 300; display: none; text-align: center; }
+    .voice-hint.show { display: block; animation: fadeInOut 2.5s forwards; }
+    @keyframes fadeInOut { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.9);} 15%{opacity:1;transform:translate(-50%,-50%) scale(1);} 75%{opacity:1;transform:translate(-50%,-50%) scale(1);} 100%{opacity:0;transform:translate(-50%,-50%) scale(0.9);} }
   </style>
 </head>
 <body>
@@ -230,8 +266,6 @@
           </div>
           <div class="top-actions">
             <button class="top-action-btn" id="transferBtn" title="转账">⇄</button>
-            <button class="top-action-btn" id="exportBtn" title="导出">↓</button>
-            <button class="top-action-btn" id="voiceBtn" title="语音记账">🎤</button>
           </div>
         </div>
         <div class="top-row">
@@ -256,6 +290,7 @@
       <div class="tab active" data-tab="record">账单</div>
       <div class="tab" data-tab="stats">统计</div>
       <div class="tab" data-tab="budget">预算</div>
+      <div class="tab" data-tab="settings">设置</div>
     </div>
 
     <!-- CONTENT -->
@@ -326,7 +361,77 @@
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- SETTINGS PAGE -->
+      <div id="page-settings" style="display:none;">
+        <div class="settings-card">
+          <div class="settings-title">🎨 主题切换</div>
+          <div class="theme-grid">
+            <div class="theme-item theme-default selected" data-theme="default">
+              <div class="theme-item-name">💜 梦幻紫</div>
+              <div class="theme-item-desc">默认主题</div>
+            </div>
+            <div class="theme-item theme-light" data-theme="light">
+              <div class="theme-item-name">☀️ 简约白</div>
+              <div class="theme-item-desc">护眼浅色</div>
+            </div>
+            <div class="theme-item theme-green" data-theme="green">
+              <div class="theme-item-name">🌿 护眼绿</div>
+              <div class="theme-item-desc">自然清新</div>
+            </div>
+            <div class="theme-item theme-dark" data-theme="dark">
+              <div class="theme-item-name">🌙 深夜黑</div>
+              <div class="theme-item-desc">暗黑模式</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-title">📤 导出数据</div>
+          <button class="export-btn-large" id="exportBtnLarge">↓ 导出为 CSV 文件</button>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-title">🎉 趣味统计</div>
+          <div class="fun-stats-grid">
+            <div class="fun-stat-card">
+              <div class="fun-stat-emoji">🔥</div>
+              <div class="fun-stat-val" id="funStreak">0</div>
+              <div class="fun-stat-label">连续记账天数</div>
+            </div>
+            <div class="fun-stat-card">
+              <div class="fun-stat-emoji">🏆</div>
+              <div class="fun-stat-val" id="funTopDay">-</div>
+              <div class="fun-stat-label">本月最高消费日</div>
+            </div>
+            <div class="fun-stat-card">
+              <div class="fun-stat-emoji">💸</div>
+              <div class="fun-stat-val" id="funTopCat">-</div>
+              <div class="fun-stat-label">最常消费分类</div>
+            </div>
+            <div class="fun-stat-card">
+              <div class="fun-stat-emoji">💰</div>
+              <div class="fun-stat-val" id="funTotalCount">0</div>
+              <div class="fun-stat-label">累计记账笔数</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-title">🎤 语音记账说明</div>
+          <div style="font-size:13px;color:#666;line-height:1.8;">
+            点击底部 <strong>语音按钮</strong>，说出如：<br>
+            <span style="color:#667eea;font-weight:700;">"餐饮20元"</span> → 自动填入餐饮 20元<br>
+            <span style="color:#667eea;font-weight:700;">"收入5000工资"</span> → 自动填入工资收入 5000元<br>
+            <span style="color:#667eea;font-weight:700;">"今天花了100打车"</span> → 自动填入交通 100元<br><br>
+            <span style="color:#e74c3c;">⚠️ 每次记账都需要手动点击语音按钮启动聆听，不会自动监听。</span>
+          </div>
+        </div>
+      </div>
+
+    <!-- FLOATING VOICE BUTTON -->
+    <button class="voice-float-btn" id="voiceFloatBtn">🎤</button>
+    <div class="voice-hint" id="voiceHint">正在聆听，请说话...</div>
 
     <!-- CATEGORY CHIPS (fixed bottom) -->
     <div class="cat-section" id="catSection">
@@ -531,6 +636,8 @@
       };
 
       document.getElementById('inlineAmount').focus();
+      // Scroll form into view on mobile
+      setTimeout(() => { document.getElementById('inlineFormArea').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
       document.getElementById('inlineClose').onclick = closeInlineForm;
       document.querySelectorAll('.type-btn-sm').forEach(btn => {
         btn.onclick = () => {
@@ -824,14 +931,15 @@
 
     // Voice input
     let recognition;
-    document.getElementById('voiceBtn').onclick = () => {
-      const btn = document.getElementById('voiceBtn');
+    let isListening = false;
+    document.getElementById('voiceFloatBtn').onclick = () => {
+      const btn = document.getElementById('voiceFloatBtn');
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         alert('当前浏览器不支持语音输入，请使用 Chrome 或 Edge');
         return;
       }
-      if (recognition && recognition.listening) {
-        recognition.stop();
+      if (isListening) {
+        recognition?.stop();
         return;
       }
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -839,22 +947,28 @@
       recognition.lang = 'zh-CN';
       recognition.continuous = false;
       recognition.interimResults = false;
+      isListening = true;
       btn.classList.add('listening');
-      btn.title = '正在聆听...';
       recognition.start();
+      // Show hint
+      const hint = document.getElementById('voiceHint');
+      hint.classList.remove('show');
+      void hint.offsetWidth; // reflow
+      hint.classList.add('show');
       recognition.onresult = e => {
         const text = e.results[0][0].transcript;
         btn.classList.remove('listening');
-        btn.title = '语音记账';
+        isListening = false;
         parseVoiceAndFill(text);
       };
       recognition.onerror = () => {
         btn.classList.remove('listening');
-        btn.title = '语音记账';
+        isListening = false;
       };
       recognition.onend = () => {
         btn.classList.remove('listening');
-        btn.title = '语音记账';
+        isListening = false;
+      };
       };
     };
 
@@ -885,7 +999,7 @@
     }
 
     // Export CSV
-    document.getElementById('exportBtn').onclick = () => {
+    function doExport() {
       const headers = ['日期','类型','分类','金额','账户','备注'];
       const rows = records.map(r => {
         const acct = accounts.find(a => a.id === r.accountId)?.name || '';
@@ -899,7 +1013,62 @@
       a.download = `记账本_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-    };
+    }
+    document.getElementById('exportBtn')?.addEventListener('click', doExport);
+    document.getElementById('exportBtnLarge')?.addEventListener('click', doExport);
+
+    // Fun stats
+    function renderFunStats() {
+      // Streak
+      const expenseRecs = records.filter(r => r.type === 'expense' || r.type === 'income').sort((a,b) => new Date(b.date) - new Date(a.date));
+      let streak = 0, prevDate = null;
+      const today = new Date(); today.setHours(0,0,0,0);
+      expenseRecs.forEach(r => {
+        const d = new Date(r.date); d.setHours(0,0,0,0);
+        if (!prevDate) { if (d.getTime() === today.getTime() || d.getTime() === today.getTime() - 86400000) { streak = 1; prevDate = d; } else { streak = 0; } }
+        else { if (d.getTime() === prevDate.getTime() - 86400000) { streak++; prevDate = d; } else if (d.getTime() !== prevDate.getTime()) { return; } }
+      });
+      document.getElementById('funStreak').textContent = streak;
+
+      // Top day this month
+      const now = new Date();
+      const dayTotals = {};
+      records.forEach(r => { if (r.type !== 'expense') return; const d = new Date(r.date); if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) { dayTotals[d.getDate()] = (dayTotals[d.getDate()] || 0) + r.amount; } });
+      const topDay = Object.entries(dayTotals).sort((a,b) => b[1]-a[1])[0];
+      document.getElementById('funTopDay').textContent = topDay ? topDay[0] + '日' : '-';
+
+      // Top category
+      const catCounts = {};
+      records.forEach(r => { if (r.type !== 'expense') return; catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
+      const topCat = Object.entries(catCounts).sort((a,b) => b[1]-a[1])[0];
+      document.getElementById('funTopCat').textContent = topCat ? topCat[0] : '-';
+
+      // Total count
+      document.getElementById('funTotalCount').textContent = records.length;
+    }
+
+    // Theme switching
+    let currentTheme = localStorage.getItem('appTheme') || 'default';
+    function applyTheme(theme) {
+      currentTheme = theme;
+      localStorage.setItem('appTheme', theme);
+      const themes = {
+        default: { bar:'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', accent:'#667eea', bg:'#f0f4ff', text:'#1a1a2e' },
+        light: { bar:'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', accent:'#495057', bg:'#ffffff', text:'#212529' },
+        green: { bar:'linear-gradient(135deg, #2d6a4f 0%, #52b788 100%)', accent:'#2d6a4f', bg:'#f0fff4', text:'#1a1a2e' },
+        dark: { bar:'linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%)', accent:'#667eea', bg:'#1a1a2e', text:'#f0f0f0' }
+      };
+      const t = themes[theme] || themes.default;
+      document.querySelector('.top-bar').style.background = t.bar;
+      document.body.style.background = t.bg;
+      document.querySelectorAll('.tab.active')[0] && (document.querySelectorAll('.tab.active')[0].style.color = t.accent);
+      document.querySelectorAll('.theme-item').forEach(el => el.classList.remove('selected'));
+      document.querySelector(`.theme-item[data-theme="${theme}"]`)?.classList.add('selected');
+    }
+    document.querySelectorAll('.theme-item').forEach(el => {
+      el.addEventListener('click', () => applyTheme(el.dataset.theme));
+    });
+    applyTheme(currentTheme);
 
     // Search & Filter
     document.getElementById('searchInput').oninput = e => { searchQuery = e.target.value; render(); };
@@ -930,9 +1099,12 @@
         document.getElementById('page-record').style.display = page === 'record' ? 'block' : 'none';
         document.getElementById('page-stats').style.display = page === 'stats' ? 'block' : 'none';
         document.getElementById('page-budget').style.display = page === 'budget' ? 'block' : 'none';
-        document.getElementById('catSection').style.display = page === 'record' ? 'block' : 'none';
+        document.getElementById('page-settings').style.display = page === 'settings' ? 'block' : 'none';
+        document.getElementById('catSection').style.display = (page === 'record') ? 'block' : 'none';
+        document.getElementById('voiceFloatBtn').style.display = (page === 'record') ? 'flex' : 'none';
         closeInlineForm();
         if (page === 'stats') drawChart(statsPeriod);
+        if (page === 'settings') renderFunStats();
       };
     });
 
@@ -947,6 +1119,9 @@
 
     document.getElementById('saveMonthBudget').onclick = () => { monthBudget = parseFloat(document.getElementById('monthBudgetInput').value) || 0; localStorage.setItem('monthBudget', monthBudget); updateBalance(); };
     document.getElementById('saveYearBudget').onclick = () => { yearBudget = parseFloat(document.getElementById('yearBudgetInput').value) || 0; localStorage.setItem('yearBudget', yearBudget); updateBalance(); };
+
+    // Show voice btn on record page (default active tab)
+    document.getElementById('voiceFloatBtn').style.display = 'flex';
 
     renderCatChips();
     render();
