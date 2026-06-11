@@ -674,7 +674,7 @@
           const acct = accounts.find(a => a.id === r.accountId) || accounts[0];
           const isTransfer = r.type === 'transfer-in' || r.type === 'transfer-out';
           const label = isTransfer ? (r.type === 'transfer-in' ? '转入' : '转出') : r.category;
-          const iconColor = isTransfer ? '#667eea' : color;
+          const iconColor = isTransfer ? '#667eea' : (r.type === 'income' ? '#2ecc71' : color);
           return `<li class="record-item">
             <div class="record-left">
               <div class="record-icon" style="background:${iconColor};">${isTransfer ? '⇄' : r.category.slice(0,1)}</div>
@@ -842,39 +842,39 @@
             // 填充数据
             const catOfDay = {};
             records.forEach(r => { if (r.type !== 'expense') return; const d = parseDate(r.date); if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && d.getDate() === parseInt(day)) { catOfDay[r.category] = (catOfDay[r.category] || 0) + r.amount; } });
-            const catRows = Object.entries(catOfDay).sort((a,b) => b[1]-a[1]).map(([cat, catAmt]) => {
-              const catColor = getCatColor(cat);
-              return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
-                <div style="width:8px;height:8px;border-radius:50%;background:${catColor};flex-shrink:0;"></div>
-                <div style="flex:1;">${cat}</div>
-                <div style="font-weight:700;color:#e74c3c;">¥${catAmt.toFixed(2)}</div>
-              </div>`;
-            }).join('');
-            detail.innerHTML = catRows || '无分类';
-            detail.style.display = 'block';
-          } else {
-            detail.style.display = 'none';
-          }
-        }
-      }
-      if (monthItem) {
-        const m = monthItem.dataset.month;
-        const detail = document.getElementById('monthDetail' + m);
-        if (detail) {
-          if (detail.style.display === 'none') {
-            // 填充数据
-            const catOfMonth = {};
-            records.forEach(r => { if (r.type !== 'expense') return; const d = parseDate(r.date); if (d.getFullYear() === now.getFullYear() && d.getMonth() === parseInt(m)) { catOfMonth[r.category] = (catOfMonth[r.category] || 0) + r.amount; } });
-            const catRows = Object.entries(catOfMonth).sort((a,b) => b[1]-a[1]).map(([cat, catAmt]) => {
-              const catColor = getCatColor(cat);
-              return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
-                <div style="width:8px;height:8px;border-radius:50%;background:${catColor};flex-shrink:0;"></div>
-                <div style="flex:1;">${cat}</div>
-                <div style="font-weight:700;color:#e74c3c;">¥${catAmt.toFixed(2)}</div>
-              </div>`;
-            }).join('');
-            detail.innerHTML = catRows || '无分类';
-            detail.style.display = 'block';
+	            const catRows = Object.entries(catOfDay).sort((a,b) => b[1]-a[1]).map(([cat, catAmt]) => {
+	              const catColor = getCatColor(cat);
+	              return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+	                <div style="width:8px;height:8px;border-radius:50%;background:${catColor};flex-shrink:0;"></div>
+	                <div style="flex:1;">${cat}</div>
+	                <div style="font-weight:700;color:#e74c3c;">¥${catAmt.toFixed(2)}</div>
+	              </div>`;
+	            }).join('');
+	            detail.innerHTML = `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px;color:#999;"><span>按金额排序 ▼</span><span style="cursor:pointer;color:#667eea;" onclick="this.closest('.day-bar-item').click()">切分类序</span></div>` + (catRows || '无分类');
+	            detail.style.display = 'block';
+	          } else {
+	            detail.style.display = 'none';
+	          }
+	        }
+	      }
+	      if (monthItem) {
+	        const m = monthItem.dataset.month;
+	        const detail = document.getElementById('monthDetail' + m);
+	        if (detail) {
+	          if (detail.style.display === 'none') {
+	            // 填充数据
+	            const catOfMonth = {};
+	            records.forEach(r => { if (r.type !== 'expense') return; const d = parseDate(r.date); if (d.getFullYear() === now.getFullYear() && d.getMonth() === parseInt(m)) { catOfMonth[r.category] = (catOfMonth[r.category] || 0) + r.amount; } });
+	            const catRows = Object.entries(catOfMonth).sort((a,b) => b[1]-a[1]).map(([cat, catAmt]) => {
+	              const catColor = getCatColor(cat);
+	              return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+	                <div style="width:8px;height:8px;border-radius:50%;background:${catColor};flex-shrink:0;"></div>
+	                <div style="flex:1;">${cat}</div>
+	                <div style="font-weight:700;color:#e74c3c;">¥${catAmt.toFixed(2)}</div>
+	              </div>`;
+	            }).join('');
+	            detail.innerHTML = `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px;color:#999;"><span>按金额排序 ▼</span><span style="cursor:pointer;color:#667eea;" onclick="this.closest('.month-bar-item').click()">切分类序</span></div>` + (catRows || '无分类');
+	            detail.style.display = 'block';
           } else {
             detail.style.display = 'none';
           }
